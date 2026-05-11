@@ -59,7 +59,7 @@ router.post("/", async (req, res) => {
     )
 
     const baseUrl = process.env.APP_URL || "http://localhost:3000"
-    const setPasswordLink = `${baseUrl}/set-password?email=${encodeURIComponent(rawEmail)}&token=${rawToken}`
+    const setPasswordLink = `${baseUrl}/admin/set-password?email=${encodeURIComponent(rawEmail)}&token=${rawToken}`
 
     await sendEmail({
       to: rawEmail,
