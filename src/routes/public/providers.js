@@ -13,7 +13,7 @@ router.get("/programs/best-roi", async (req, res) => {
 
     // Find all active providers marked as bestROI
     const bestROIProviders = await Provider.find({ bestROI: true, isActive: "active" })
-      .select("name slug logo coverImage averageRating trending shortExcerpt")
+      .select("name slug logo coverImage averageRating trending shortExcerpt campuses")
 
     if (!bestROIProviders.length) return res.json([])
 
@@ -92,7 +92,7 @@ router.get("/programs/trending", async (req, res) => {
 
     // Find active providers marked as trending
     const trendingProviders = await Provider.find({ trending: true, isActive: "active" })
-      .select("name slug logo coverImage averageRating trending shortExcerpt")
+      .select("name slug logo coverImage averageRating trending shortExcerpt campuses")
 
     const providerMap = {}
     for (const p of trendingProviders) {
@@ -118,7 +118,7 @@ router.get("/programs/trending", async (req, res) => {
       .filter((id) => id && !providerMap[id])
     if (extraProviderIds.length) {
       const extraProviders = await Provider.find({ _id: { $in: extraProviderIds } })
-        .select("name slug logo coverImage averageRating trending shortExcerpt")
+        .select("name slug logo coverImage averageRating trending shortExcerpt campuses")
       for (const p of extraProviders) providerMap[p._id.toString()] = p
     }
 
@@ -156,7 +156,7 @@ router.get("/", async (req, res) => {
     if (req.query.featured === "true") query.isFeatured = true
 
     const providers = await Provider.find(query)
-      .select("name slug logo coverImage galleryImages shortExcerpt facts approvals admissionOpen isFeatured averageRating reviewCount comparison ratingBreakdown")
+      .select("name slug logo coverImage galleryImages shortExcerpt facts approvals admissionOpen isFeatured averageRating reviewCount campuses comparison ratingBreakdown")
       .sort({ isFeatured: -1, createdAt: -1 })
 
     res.json(providers)
