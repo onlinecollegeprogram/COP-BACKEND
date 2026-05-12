@@ -72,7 +72,7 @@ router.get("/stats", async (req, res) => {
  *       - clerkAuth: []
  *     responses:
  *       200:
- *         description: Array of `{ _id: source, count }`
+ *         description: "Array of objects with shape { _id: source, count }"
  *         content:
  *           application/json:
  *             schema:
@@ -110,7 +110,7 @@ router.get("/leads-by-source", async (req, res) => {
  *       - clerkAuth: []
  *     responses:
  *       200:
- *         description: Array of `{ _id: rating, count }`
+ *         description: "Array of objects with shape { _id: rating, count }"
  *         content:
  *           application/json:
  *             schema:
