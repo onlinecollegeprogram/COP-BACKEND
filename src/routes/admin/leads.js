@@ -9,6 +9,32 @@ const router = Router()
 router.use(withClerk)
 router.use(requireAdminAuth)
 
+/**
+ * @openapi
+ * /api/admin/leads:
+ *   get:
+ *     tags: [Admin - Leads]
+ *     summary: List leads
+ *     description: Returns leads sorted newest-first. Optionally filter by `callStatus` via the `status` query param.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *         description: Filter by `callStatus` (e.g. "new", "contacted", "qualified", "converted")
+ *     responses:
+ *       200:
+ *         description: Array of leads
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Lead' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/leads
 router.get("/", async (req, res) => {
   try {
@@ -23,6 +49,44 @@ router.get("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/leads:
+ *   post:
+ *     tags: [Admin - Leads]
+ *     summary: Create a lead (admin-side)
+ *     description: Admin counterpart of the public lead form. Requires name, email, and phone.
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, phone]
+ *             properties:
+ *               name: { type: string }
+ *               email: { type: string, format: email }
+ *               phone: { type: string }
+ *               courseOfInterest: { type: string }
+ *               message: { type: string }
+ *               source: { type: string, default: website_form }
+ *     responses:
+ *       201:
+ *         description: Lead created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Lead' }
+ *       400:
+ *         description: Missing name/email/phone
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/leads (admin can also create)
 router.post("/", async (req, res) => {
   try {
@@ -48,6 +112,30 @@ router.post("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/leads/{id}:
+ *   get:
+ *     tags: [Admin - Leads]
+ *     summary: Get a lead by ID
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Lead document
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Lead' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Lead not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/leads/:id
 router.get("/:id", async (req, res) => {
   try {
@@ -60,6 +148,45 @@ router.get("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/leads/{id}:
+ *   put:
+ *     tags: [Admin - Leads]
+ *     summary: Update a lead
+ *     description: Updates lead fields (e.g. `callStatus`, `assignedTo`, `notes`) and stamps `lastUpdated`.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               email: { type: string, format: email }
+ *               phone: { type: string }
+ *               callStatus: { type: string }
+ *               assignedTo: { type: string }
+ *               courseOfInterest: { type: string }
+ *               message: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated lead
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Lead' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Lead not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PUT /api/admin/leads/:id
 router.put("/:id", async (req, res) => {
   try {
@@ -86,6 +213,30 @@ router.put("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/leads/{id}:
+ *   delete:
+ *     tags: [Admin - Leads]
+ *     summary: Delete a lead
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Lead deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Lead not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/leads/:id
 router.delete("/:id", async (req, res) => {
   try {

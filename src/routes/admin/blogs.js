@@ -25,6 +25,36 @@ async function uniqueSlug(base, excludeId = null) {
   return slug
 }
 
+/**
+ * @openapi
+ * /api/admin/blogs:
+ *   get:
+ *     tags: [Admin - Blogs]
+ *     summary: List all blogs
+ *     description: Returns every blog document, newest first.
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of blog documents
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   title: { type: string }
+ *                   slug: { type: string }
+ *                   content: { type: string }
+ *                   coverImage: { type: string }
+ *                   createdAt: { type: string, format: date-time }
+ *                   updatedAt: { type: string, format: date-time }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/blogs
 router.get("/", async (req, res) => {
   try {
@@ -36,6 +66,49 @@ router.get("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/blogs:
+ *   post:
+ *     tags: [Admin - Blogs]
+ *     summary: Create a blog
+ *     description: |
+ *       Creates a new blog. If `slug` is omitted, one is generated from `title`. The slug is
+ *       made unique by appending `-1`, `-2`, ... if a collision is detected.
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title]
+ *             properties:
+ *               title: { type: string }
+ *               slug: { type: string, description: Optional; generated from title if omitted }
+ *               content: { type: string }
+ *               coverImage: { type: string }
+ *     responses:
+ *       201:
+ *         description: Blog created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 title: { type: string }
+ *                 slug: { type: string }
+ *       400:
+ *         description: Title missing
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/blogs
 router.post("/", async (req, res) => {
   try {
@@ -65,6 +138,36 @@ router.post("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/blogs/{slug}:
+ *   get:
+ *     tags: [Admin - Blogs]
+ *     summary: Get a blog by slug
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Blog document
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 title: { type: string }
+ *                 slug: { type: string }
+ *                 content: { type: string }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Blog not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/blogs/:slug
 router.get("/:slug", async (req, res) => {
   try {
@@ -77,6 +180,47 @@ router.get("/:slug", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/blogs/{slug}:
+ *   put:
+ *     tags: [Admin - Blogs]
+ *     summary: Update a blog
+ *     description: Updates a blog by its current slug. If `title` or `slug` is in the body, a new unique slug is computed.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title: { type: string }
+ *               slug: { type: string }
+ *               content: { type: string }
+ *               coverImage: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated blog
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 title: { type: string }
+ *                 slug: { type: string }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Blog not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PUT /api/admin/blogs/:slug
 router.put("/:slug", async (req, res) => {
   try {
@@ -111,6 +255,30 @@ router.put("/:slug", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/blogs/{slug}:
+ *   delete:
+ *     tags: [Admin - Blogs]
+ *     summary: Delete a blog
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Blog deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Blog not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/blogs/:slug
 router.delete("/:slug", async (req, res) => {
   try {

@@ -7,6 +7,50 @@ import { optionalStudentAuth } from "../../middleware/studentAuth.js"
 const router = Router()
 
 // POST /api/public/leads — handle both general leads and "Talk to Expert" requests
+/**
+ * @openapi
+ * /api/public/leads:
+ *   post:
+ *     tags: [Public - Leads]
+ *     summary: Submit a new lead (general or "Talk to Expert")
+ *     description: |
+ *       Public endpoint for capturing leads from the website. Uses optional student auth — if
+ *       a student bearer token is supplied, the lead is auto-filled from the student record
+ *       and tagged with their student id in metadata. Sends an admin notification email
+ *       (failure to send email does not fail the request).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string, description: "Required if no logged-in student." }
+ *               email: { type: string, format: email, description: "Required if no logged-in student." }
+ *               phone: { type: string, description: "Required if no logged-in student." }
+ *               courseOfInterest: { type: string }
+ *               message: { type: string }
+ *               source:
+ *                 type: string
+ *                 description: 'Form source identifier; "talk_to_experts" triggers Talk-to-Expert flow.'
+ *                 example: website_form
+ *     responses:
+ *       201:
+ *         description: Lead created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 lead: { $ref: '#/components/schemas/Lead' }
+ *       400:
+ *         description: Missing required fields or invalid email format
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/", optionalStudentAuth, async (req, res) => {
   try {
     await connectDB()

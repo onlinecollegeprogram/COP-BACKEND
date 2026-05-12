@@ -6,6 +6,55 @@ import ProviderCourse from "../../models/ProviderCourse.js"
 const router = Router()
 
 // GET /api/public/courses/home-summary — courses grouped by degree type with aggregated stats
+/**
+ * @openapi
+ * /api/public/courses/home-summary:
+ *   get:
+ *     tags: [Public - Courses]
+ *     summary: Home-page summary of courses grouped by degree type
+ *     description: |
+ *       Returns active courses grouped by degree type, with aggregated provider-course stats
+ *       (min fees, provider count, trending flag, etc.). Groups are sorted by `degreeType.order`.
+ *     responses:
+ *       200:
+ *         description: Grouped courses summary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   degreeType:
+ *                     type: object
+ *                     properties:
+ *                       name: { type: string }
+ *                       slug: { type: string }
+ *                       order: { type: integer }
+ *                   courses:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         _id: { type: string }
+ *                         name: { type: string }
+ *                         slug: { type: string }
+ *                         icon: { type: string, nullable: true }
+ *                         thumbnail: { type: string, nullable: true }
+ *                         description: { type: string }
+ *                         shortDescription: { type: string }
+ *                         duration: { type: string }
+ *                         feeStarting: { type: number }
+ *                         minFees: { type: number }
+ *                         providerCount: { type: integer }
+ *                         universities:
+ *                           type: array
+ *                           items: { type: object }
+ *                         isTrending: { type: boolean }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", async (req, res) => {
   try {
     await connectDB()

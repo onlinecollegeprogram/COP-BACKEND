@@ -9,6 +9,27 @@ const router = Router()
 router.use(withClerk)
 router.use(requireAdminAuth)
 
+/**
+ * @openapi
+ * /api/admin/students:
+ *   get:
+ *     tags: [Admin - Students]
+ *     summary: List all students
+ *     description: Returns students newest-first, excluding sensitive fields (`password`, reset tokens).
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of students
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Student' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/students
 router.get("/", async (req, res) => {
     try {
@@ -22,6 +43,31 @@ router.get("/", async (req, res) => {
     }
 })
 
+/**
+ * @openapi
+ * /api/admin/students/{id}:
+ *   get:
+ *     tags: [Admin - Students]
+ *     summary: Get a student by ID
+ *     description: Returns the student with sensitive fields (`password`, reset tokens) stripped.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Student document
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Student' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Student not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/students/:id
 router.get("/:id", async (req, res) => {
     try {
@@ -36,6 +82,39 @@ router.get("/:id", async (req, res) => {
     }
 })
 
+/**
+ * @openapi
+ * /api/admin/students/{id}:
+ *   patch:
+ *     tags: [Admin - Students]
+ *     summary: Update an admin-editable student field
+ *     description: Currently only `isActive` is honored (used to suspend/reactivate a student).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               isActive: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Updated student (sensitive fields stripped)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Student' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Student not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PATCH /api/admin/students/:id — toggle active / update basic admin-editable fields
 router.patch("/:id", async (req, res) => {
     try {
@@ -70,6 +149,30 @@ router.patch("/:id", async (req, res) => {
     }
 })
 
+/**
+ * @openapi
+ * /api/admin/students/{id}:
+ *   delete:
+ *     tags: [Admin - Students]
+ *     summary: Delete a student account
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Student deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Student not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/students/:id
 router.delete("/:id", async (req, res) => {
     try {

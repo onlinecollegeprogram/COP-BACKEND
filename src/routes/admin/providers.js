@@ -23,6 +23,27 @@ async function uniqueSlug(base, excludeId = null) {
   return slug
 }
 
+/**
+ * @openapi
+ * /api/admin/providers:
+ *   get:
+ *     tags: [Admin - Providers]
+ *     summary: List all providers
+ *     description: Returns every provider (university) sorted newest-first.
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of providers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Provider' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/providers
 router.get("/", async (req, res) => {
   try {
@@ -34,6 +55,36 @@ router.get("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/providers:
+ *   post:
+ *     tags: [Admin - Providers]
+ *     summary: Create a provider
+ *     description: Slug is auto-generated from `name` (or `slug` if supplied) and made unique by suffixing `-N` on collision.
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/Provider'
+ *               - type: object
+ *                 properties:
+ *                   metaTitle: { type: string }
+ *                   metaDescription: { type: string }
+ *     responses:
+ *       201:
+ *         description: Provider created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Provider' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/providers
 router.post("/", async (req, res) => {
   try {
@@ -58,6 +109,30 @@ router.post("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/providers/{id}:
+ *   get:
+ *     tags: [Admin - Providers]
+ *     summary: Get a provider by ID
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Provider document
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Provider' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Provider not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/providers/:id
 router.get("/:id", async (req, res) => {
   try {
@@ -70,6 +145,36 @@ router.get("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/providers/{id}:
+ *   put:
+ *     tags: [Admin - Providers]
+ *     summary: Update a provider
+ *     description: When `name` or `slug` is in the body, a new unique slug is recomputed (excluding the current document from the uniqueness check).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/Provider' }
+ *     responses:
+ *       200:
+ *         description: Updated provider
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Provider' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Provider not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PUT /api/admin/providers/:id
 router.put("/:id", async (req, res) => {
   try {
@@ -98,6 +203,30 @@ router.put("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/providers/{id}:
+ *   delete:
+ *     tags: [Admin - Providers]
+ *     summary: Delete a provider
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Provider deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Provider not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/providers/:id
 router.delete("/:id", async (req, res) => {
   try {

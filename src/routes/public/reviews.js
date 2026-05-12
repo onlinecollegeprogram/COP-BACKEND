@@ -10,6 +10,47 @@ const router = Router()
  * @desc    Submit a new review (pending approval)
  * @access  Public
  */
+/**
+ * @openapi
+ * /api/public/reviews:
+ *   post:
+ *     tags: [Public - Reviews]
+ *     summary: Submit a new review (held for moderation)
+ *     description: |
+ *       Submitted reviews are created with `isActive: false` and become visible only after
+ *       an admin approves them. An admin notification email is sent fire-and-forget after the response.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [providerId, name, email, rating, title, comment]
+ *             properties:
+ *               providerId: { type: string }
+ *               name: { type: string }
+ *               email: { type: string, format: email }
+ *               rating: { type: integer, minimum: 1, maximum: 5 }
+ *               title: { type: string }
+ *               comment: { type: string }
+ *     responses:
+ *       201:
+ *         description: Review submitted (pending moderation)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ *                 review: { $ref: '#/components/schemas/Review' }
+ *       400:
+ *         description: Missing fields or rating out of range
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/", async (req, res) => {
     try {
         await connectDB()
@@ -77,6 +118,25 @@ router.post("/", async (req, res) => {
  * @route   GET /api/public/reviews
  * @desc    Get all active reviews
  * @access  Public
+ */
+/**
+ * @openapi
+ * /api/public/reviews:
+ *   get:
+ *     tags: [Public - Reviews]
+ *     summary: List the 10 latest active reviews
+ *     description: Returns up to 10 active reviews (newest first) with the related provider's `name` and `logo` populated.
+ *     responses:
+ *       200:
+ *         description: Array of active reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Review' }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
  */
 router.get("/", async (req, res) => {
     try {

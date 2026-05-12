@@ -5,6 +5,32 @@ import DegreeType from "../../models/DegreeType.js"
 const router = Router()
 
 // GET /api/public/degree-types — list all active degree types
+/**
+ * @openapi
+ * /api/public/degree-types:
+ *   get:
+ *     tags: [Public - Degree Types]
+ *     summary: List all active degree types
+ *     description: Returns active degree types sorted ascending by `order`.
+ *     responses:
+ *       200:
+ *         description: Array of degree types
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   name: { type: string }
+ *                   slug: { type: string }
+ *                   order: { type: integer }
+ *                   isActive: { type: boolean }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", async (req, res) => {
   try {
     await connectDB()

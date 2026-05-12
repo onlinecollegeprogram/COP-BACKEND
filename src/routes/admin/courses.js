@@ -9,6 +9,27 @@ const router = Router()
 router.use(withClerk)
 router.use(requireAdminAuth)
 
+/**
+ * @openapi
+ * /api/admin/courses:
+ *   get:
+ *     tags: [Admin - Courses]
+ *     summary: List all courses
+ *     description: Returns courses with populated `degreeTypeId` and `universities` (name only).
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Course' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/courses
 router.get("/", async (req, res) => {
   try {
@@ -21,6 +42,38 @@ router.get("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/courses:
+ *   post:
+ *     tags: [Admin - Courses]
+ *     summary: Create a course
+ *     description: Creates a course using whatever fields are accepted by the `Course` Mongoose schema (name, slug, description, degreeTypeId, universities, etc.).
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/Course'
+ *               - type: object
+ *                 properties:
+ *                   degreeTypeId: { type: string }
+ *                   universities:
+ *                     type: array
+ *                     items: { type: string, description: Provider ObjectId }
+ *     responses:
+ *       201:
+ *         description: Course created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Course' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error (incl. validation), content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/courses
 router.post("/", async (req, res) => {
   try {
@@ -43,6 +96,31 @@ router.post("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/courses/{id}:
+ *   get:
+ *     tags: [Admin - Courses]
+ *     summary: Get a course by ID
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Course Mongo ObjectId
+ *     responses:
+ *       200:
+ *         description: Course document (with populated degreeType and universities)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Course' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Course not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/courses/:id
 router.get("/:id", async (req, res) => {
   try {
@@ -56,6 +134,43 @@ router.get("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/courses/{id}:
+ *   put:
+ *     tags: [Admin - Courses]
+ *     summary: Update a course
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/Course'
+ *               - type: object
+ *                 properties:
+ *                   degreeTypeId: { type: string }
+ *                   universities:
+ *                     type: array
+ *                     items: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated course (populated)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Course' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Course not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PUT /api/admin/courses/:id
 router.put("/:id", async (req, res) => {
   try {
@@ -81,6 +196,30 @@ router.put("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/courses/{id}:
+ *   delete:
+ *     tags: [Admin - Courses]
+ *     summary: Delete a course
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Course deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Course not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/courses/:id
 router.delete("/:id", async (req, res) => {
   try {

@@ -6,6 +6,25 @@ import ProviderCourse from "../../models/ProviderCourse.js"
 const router = Router()
 
 // GET /api/public/courses — list all active courses
+/**
+ * @openapi
+ * /api/public/courses:
+ *   get:
+ *     tags: [Public - Courses]
+ *     summary: List all active courses
+ *     description: Returns every active course with its populated degree type. Public endpoint.
+ *     responses:
+ *       200:
+ *         description: Array of active courses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Course' }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", async (req, res) => {
   try {
     await connectDB()
@@ -19,6 +38,44 @@ router.get("/", async (req, res) => {
 // GET /api/public/courses/:identifier — single course with its provider programs.
 // `identifier` may be a Course ObjectId/slug OR a ProviderCourse ObjectId/slug;
 // in the latter case we resolve to the parent Course and flag the matched program.
+/**
+ * @openapi
+ * /api/public/courses/{identifier}:
+ *   get:
+ *     tags: [Public - Courses]
+ *     summary: Get a course (or program-matched course) with all its provider programs
+ *     description: |
+ *       The `identifier` may be either a Course ObjectId/slug OR a ProviderCourse ObjectId/slug.
+ *       If a ProviderCourse identifier is given, the parent Course is resolved and the matched
+ *       program is flagged via `selectedProgramId`.
+ *     parameters:
+ *       - in: path
+ *         name: identifier
+ *         required: true
+ *         description: Course ObjectId, course slug, ProviderCourse ObjectId, or ProviderCourse slug.
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Course with its programs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 course: { $ref: '#/components/schemas/Course' }
+ *                 programs:
+ *                   type: array
+ *                   items: { $ref: '#/components/schemas/ProviderCourse' }
+ *                 selectedProgramId:
+ *                   type: string
+ *                   nullable: true
+ *       404:
+ *         description: Course not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/:identifier", async (req, res) => {
   try {
     await connectDB()

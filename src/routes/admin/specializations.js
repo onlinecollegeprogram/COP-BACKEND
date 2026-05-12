@@ -9,6 +9,38 @@ const router = Router()
 router.use(withClerk)
 router.use(requireAdminAuth)
 
+/**
+ * @openapi
+ * /api/admin/specializations:
+ *   get:
+ *     tags: [Admin - Specializations]
+ *     summary: List specializations
+ *     description: Returns specializations with `courseId` populated, sorted by `order` ascending. Optionally filter by `courseId`.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: courseId
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Array of specializations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   name: { type: string }
+ *                   slug: { type: string }
+ *                   courseId: { type: string }
+ *                   order: { type: integer }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/specializations
 router.get("/", async (req, res) => {
   try {
@@ -23,6 +55,43 @@ router.get("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/specializations:
+ *   post:
+ *     tags: [Admin - Specializations]
+ *     summary: Create a specialization
+ *     description: Slug is generated from `name`.
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, courseId]
+ *             properties:
+ *               name: { type: string }
+ *               courseId: { type: string }
+ *               order: { type: integer }
+ *               description: { type: string }
+ *     responses:
+ *       201:
+ *         description: Specialization created (courseId populated)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 name: { type: string }
+ *                 slug: { type: string }
+ *                 courseId: { type: object }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/specializations
 router.post("/", async (req, res) => {
   try {
@@ -47,6 +116,36 @@ router.post("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/specializations/{id}:
+ *   get:
+ *     tags: [Admin - Specializations]
+ *     summary: Get a specialization by ID
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Specialization (courseId populated)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 name: { type: string }
+ *                 slug: { type: string }
+ *                 courseId: { type: object }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Specialization not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/specializations/:id
 router.get("/:id", async (req, res) => {
   try {
@@ -59,6 +158,47 @@ router.get("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/specializations/{id}:
+ *   put:
+ *     tags: [Admin - Specializations]
+ *     summary: Update a specialization
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               slug: { type: string }
+ *               courseId: { type: string }
+ *               order: { type: integer }
+ *               description: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated specialization (courseId populated)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 name: { type: string }
+ *                 slug: { type: string }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Specialization not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PUT /api/admin/specializations/:id
 router.put("/:id", async (req, res) => {
   try {
@@ -82,6 +222,30 @@ router.put("/:id", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/specializations/{id}:
+ *   delete:
+ *     tags: [Admin - Specializations]
+ *     summary: Delete a specialization
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Specialization deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Specialization not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/specializations/:id
 router.delete("/:id", async (req, res) => {
   try {

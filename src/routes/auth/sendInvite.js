@@ -11,6 +11,72 @@ const router = Router()
 router.use(withClerk)
 router.use(requireAdminAuth)
 
+/**
+ * @openapi
+ * /api/auth/send-invite:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Send admin invitation email
+ *     description: |
+ *       Generates a one-time password-setup token, persists an Invite document, and emails the
+ *       recipient a link to set their password (valid for 72 hours). Requires the caller to be
+ *       either an `admin` or to have `users` in their `access` array.
+ *
+ *       If a `User` already exists for the email, their role/access are synchronized immediately.
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email address of the user to invite
+ *               role:
+ *                 type: string
+ *                 enum: [admin, viewer]
+ *                 default: viewer
+ *               access:
+ *                 type: array
+ *                 items: { type: string }
+ *                 description: List of section keys the invitee can access
+ *     responses:
+ *       201:
+ *         description: Invitation created and email sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string }
+ *                 invite: { $ref: '#/components/schemas/Invite' }
+ *       400:
+ *         description: Missing email or invalid role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401:
+ *         description: Unauthorized (no/invalid Clerk session)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       403:
+ *         description: Caller lacks permission to invite users
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       500:
+ *         description: Server error (email delivery, DB, etc.)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ */
 // POST /api/auth/send-invite
 router.post("/", async (req, res) => {
   try {

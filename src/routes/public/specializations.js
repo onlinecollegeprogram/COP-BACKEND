@@ -6,6 +6,38 @@ import ProviderCourse from "../../models/ProviderCourse.js"
 const router = Router()
 
 // GET /api/public/specializations — list all active specializations
+/**
+ * @openapi
+ * /api/public/specializations:
+ *   get:
+ *     tags: [Public - Specializations]
+ *     summary: List all active specializations with provider counts
+ *     description: |
+ *       Returns active specializations with `courseId` populated. Each result has a computed
+ *       `providerCount` equal to the number of unique providers offering active courses
+ *       under that specialization.
+ *     responses:
+ *       200:
+ *         description: Array of specializations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   name: { type: string }
+ *                   slug: { type: string }
+ *                   courseId:
+ *                     type: object
+ *                     description: Populated Course document
+ *                   isActive: { type: boolean }
+ *                   providerCount: { type: integer }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", async (req, res) => {
   try {
     await connectDB()
@@ -38,6 +70,34 @@ router.get("/", async (req, res) => {
 })
 
 // GET /api/public/specializations/:identifier/providers — list all providers offering this specialization
+/**
+ * @openapi
+ * /api/public/specializations/{identifier}/providers:
+ *   get:
+ *     tags: [Public - Specializations]
+ *     summary: List unique active providers that offer a specialization
+ *     description: Resolves the specialization by slug or ObjectId, then returns the unique active providers offering it via ProviderCourse.
+ *     parameters:
+ *       - in: path
+ *         name: identifier
+ *         required: true
+ *         schema: { type: string }
+ *         description: Specialization slug or ObjectId.
+ *     responses:
+ *       200:
+ *         description: Array of unique providers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Provider' }
+ *       404:
+ *         description: Specialization not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/:identifier/providers", async (req, res) => {
   try {
     await connectDB()

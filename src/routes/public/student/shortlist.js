@@ -6,6 +6,49 @@ import { requireStudentAuth } from "../../../middleware/studentAuth.js"
 const router = Router()
 
 // GET /api/public/student/shortlist — list shortlisted universities
+/**
+ * @openapi
+ * /api/public/student/shortlist:
+ *   get:
+ *     tags: [Student - Shortlist]
+ *     summary: List the logged-in student's shortlisted universities
+ *     security:
+ *       - studentAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of shortlisted universities
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   providerId: { type: string }
+ *                   name: { type: string }
+ *                   logo: { type: string }
+ *                   rating: { type: number }
+ *                   approvals:
+ *                     type: array
+ *                     items: { type: string }
+ *                   startingFee: { type: number }
+ *                   minimumDuration: { type: string }
+ *                   courses:
+ *                     type: array
+ *                     items: { type: object }
+ *                   states:
+ *                     type: array
+ *                     items: { type: string }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()
@@ -21,6 +64,61 @@ router.get("/", requireStudentAuth, async (req, res) => {
 })
 
 // POST /api/public/student/shortlist — add a university
+/**
+ * @openapi
+ * /api/public/student/shortlist:
+ *   post:
+ *     tags: [Student - Shortlist]
+ *     summary: Add a university to the logged-in student's shortlist
+ *     description: At least one of `providerId` or `name` is required. Returns 409 if already shortlisted.
+ *     security:
+ *       - studentAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               providerId: { type: string }
+ *               name: { type: string }
+ *               logo: { type: string }
+ *               rating: { type: number }
+ *               approvals:
+ *                 type: array
+ *                 items: { type: string }
+ *               startingFee: { type: number }
+ *               minimumDuration: { type: string }
+ *               courses:
+ *                 type: array
+ *                 items: { type: object }
+ *               states:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       201:
+ *         description: Updated shortlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { type: object }
+ *       400:
+ *         description: providerId or name required
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       409:
+ *         description: University already in shortlist
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()
@@ -76,6 +174,41 @@ router.post("/", requireStudentAuth, async (req, res) => {
 })
 
 // DELETE /api/public/student/shortlist/:providerId — remove from shortlist
+/**
+ * @openapi
+ * /api/public/student/shortlist/{providerId}:
+ *   delete:
+ *     tags: [Student - Shortlist]
+ *     summary: Remove a university from the logged-in student's shortlist
+ *     security:
+ *       - studentAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: providerId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: University removed; returns the updated shortlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *                 shortlistedUniversities:
+ *                   type: array
+ *                   items: { type: object }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student or shortlist entry not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.delete("/:providerId", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()

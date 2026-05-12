@@ -9,6 +9,42 @@ const router = Router()
 
 // POST /api/public/student/password/forgot
 // Body: { email } or { phone }
+/**
+ * @openapi
+ * /api/public/student/password/forgot:
+ *   post:
+ *     tags: [Student - Auth]
+ *     summary: Request a password reset link
+ *     description: |
+ *       Generates a 30-minute reset token and emails the reset URL to the student. Always
+ *       responds 200 (regardless of whether the account exists) to prevent account enumeration.
+ *       In non-production environments the response also includes `debugToken` for testing.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string, format: email, description: "Either `email` or `phone` is required." }
+ *               phone: { type: string }
+ *     responses:
+ *       200:
+ *         description: Generic confirmation message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *                 debugToken: { type: string, description: "Only present in non-production." }
+ *       400:
+ *         description: Missing both email and phone
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/forgot", async (req, res) => {
     try {
         await connectDB()
@@ -63,6 +99,39 @@ router.post("/forgot", async (req, res) => {
 
 // POST /api/public/student/password/reset
 // Body: { token, newPassword, confirmPassword }
+/**
+ * @openapi
+ * /api/public/student/password/reset:
+ *   post:
+ *     tags: [Student - Auth]
+ *     summary: Reset a student's password using the token from the forgot-password email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, newPassword]
+ *             properties:
+ *               token: { type: string, description: "Raw token sent in the reset link." }
+ *               newPassword: { type: string, minLength: 6 }
+ *               confirmPassword: { type: string }
+ *     responses:
+ *       200:
+ *         description: Password reset
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       400:
+ *         description: Invalid/expired token, weak password, or password mismatch
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/reset", async (req, res) => {
     try {
         await connectDB()
@@ -104,6 +173,52 @@ router.post("/reset", async (req, res) => {
 // Allows a student who signed up via OAuth (no password) to set a password
 // so they can also log in with email/password going forward.
 // Body: { newPassword, confirmPassword }
+/**
+ * @openapi
+ * /api/public/student/password/set:
+ *   post:
+ *     tags: [Student - Auth]
+ *     summary: Set an initial password (OAuth-only students)
+ *     description: |
+ *       Lets a student who signed up via OAuth and has no password on file set one so they
+ *       can also sign in with email/password. Returns 409 if a password is already set.
+ *     security:
+ *       - studentAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [newPassword]
+ *             properties:
+ *               newPassword: { type: string, minLength: 6 }
+ *               confirmPassword: { type: string }
+ *     responses:
+ *       200:
+ *         description: Password set
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       400:
+ *         description: Missing/weak password or mismatch
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       409:
+ *         description: A password is already set — use change-password instead
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/set", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()
@@ -139,6 +254,47 @@ router.post("/set", requireStudentAuth, async (req, res) => {
 
 // PUT /api/public/student/password/change   (authenticated)
 // Body: { currentPassword, newPassword, confirmPassword }
+/**
+ * @openapi
+ * /api/public/student/password/change:
+ *   put:
+ *     tags: [Student - Auth]
+ *     summary: Change the logged-in student's password
+ *     security:
+ *       - studentAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [currentPassword, newPassword]
+ *             properties:
+ *               currentPassword: { type: string }
+ *               newPassword: { type: string, minLength: 6 }
+ *               confirmPassword: { type: string }
+ *     responses:
+ *       200:
+ *         description: Password updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       400:
+ *         description: Missing/weak password or mismatch
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Unauthorized or current password incorrect
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.put("/change", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()

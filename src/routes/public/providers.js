@@ -7,6 +7,47 @@ import ProviderCourse from "../../models/ProviderCourse.js"
 const router = Router()
 
 // GET /api/public/providers/programs/best-roi — courses from bestROI providers
+/**
+ * @openapi
+ * /api/public/providers/programs/best-roi:
+ *   get:
+ *     tags: [Public - Providers]
+ *     summary: Programs from "Best ROI" providers
+ *     description: |
+ *       Returns courses from all active providers flagged `bestROI: true`. Providers with
+ *       no active courses are still returned as a placeholder card so the section never blanks.
+ *     responses:
+ *       200:
+ *         description: Array of program cards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   title: { type: string }
+ *                   slug: { type: string }
+ *                   thumbnail: { type: string, nullable: true }
+ *                   fees: { type: number }
+ *                   discountedFees: { type: number }
+ *                   duration: { type: string, nullable: true }
+ *                   trending: { type: boolean }
+ *                   certifications:
+ *                     type: array
+ *                     items: { type: string }
+ *                   features:
+ *                     type: array
+ *                     items: { type: string }
+ *                   rating: { type: number }
+ *                   providerName: { type: string }
+ *                   providerSlug: { type: string }
+ *                   providerLogo: { type: string }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/programs/best-roi", async (req, res) => {
   try {
     await connectDB()
@@ -86,6 +127,47 @@ router.get("/programs/best-roi", async (req, res) => {
 })
 
 // GET /api/public/providers/programs/trending — courses from trending providers/courses
+/**
+ * @openapi
+ * /api/public/providers/programs/trending:
+ *   get:
+ *     tags: [Public - Providers]
+ *     summary: Trending programs (course-level OR provider-level)
+ *     description: |
+ *       Returns up to 20 ProviderCourses that are either course-level trending or belong to
+ *       a provider flagged as trending. Sorted by `trending` desc then `createdAt` desc.
+ *     responses:
+ *       200:
+ *         description: Array of trending program cards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   title: { type: string }
+ *                   slug: { type: string }
+ *                   thumbnail: { type: string, nullable: true }
+ *                   fees: { type: number }
+ *                   discountedFees: { type: number }
+ *                   duration: { type: string, nullable: true }
+ *                   trending: { type: boolean }
+ *                   certifications:
+ *                     type: array
+ *                     items: { type: string }
+ *                   features:
+ *                     type: array
+ *                     items: { type: string }
+ *                   rating: { type: number }
+ *                   providerName: { type: string }
+ *                   providerSlug: { type: string }
+ *                   providerLogo: { type: string }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/programs/trending", async (req, res) => {
   try {
     await connectDB()
@@ -149,6 +231,31 @@ router.get("/programs/trending", async (req, res) => {
 })
 
 // GET /api/public/providers — list all published providers
+/**
+ * @openapi
+ * /api/public/providers:
+ *   get:
+ *     tags: [Public - Providers]
+ *     summary: List all active providers
+ *     description: Returns active providers sorted with featured first, then newest. Supports a `featured` query filter.
+ *     parameters:
+ *       - in: query
+ *         name: featured
+ *         required: false
+ *         schema: { type: string, enum: ["true"] }
+ *         description: Pass `true` to restrict to featured providers.
+ *     responses:
+ *       200:
+ *         description: Array of providers (selected listing fields)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Provider' }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", async (req, res) => {
   try {
     await connectDB()
@@ -166,6 +273,31 @@ router.get("/", async (req, res) => {
 })
 
 // GET /api/public/providers/:slug — single provider page
+/**
+ * @openapi
+ * /api/public/providers/{slug}:
+ *   get:
+ *     tags: [Public - Providers]
+ *     summary: Get a single active provider by slug or id
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         description: Provider slug or ObjectId.
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Provider document
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Provider' }
+ *       404:
+ *         description: Provider not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/:slug", async (req, res) => {
   try {
     await connectDB()
@@ -187,6 +319,33 @@ router.get("/:slug", async (req, res) => {
 })
 
 // GET /api/public/providers/:slug/reviews — active reviews for a provider
+/**
+ * @openapi
+ * /api/public/providers/{slug}/reviews:
+ *   get:
+ *     tags: [Public - Providers]
+ *     summary: Get active reviews for a provider
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         description: Provider slug or ObjectId.
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Array of active reviews (newest first)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Review' }
+ *       404:
+ *         description: Provider not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/:slug/reviews", async (req, res) => {
   try {
     await connectDB()
@@ -208,6 +367,33 @@ router.get("/:slug/reviews", async (req, res) => {
 })
 
 // GET /api/public/providers/:slug/courses — courses for a provider
+/**
+ * @openapi
+ * /api/public/providers/{slug}/courses:
+ *   get:
+ *     tags: [Public - Providers]
+ *     summary: Get active provider courses for a provider
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         description: Provider slug or ObjectId.
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Array of provider courses with degreeType, course, and specialization populated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/ProviderCourse' }
+ *       404:
+ *         description: Provider not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/:slug/courses", async (req, res) => {
   try {
     await connectDB()

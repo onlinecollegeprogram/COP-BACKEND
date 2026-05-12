@@ -7,6 +7,46 @@ const router = Router()
 
 // DELETE /api/public/student/account
 // Body: { password } — required for confirmation
+/**
+ * @openapi
+ * /api/public/student/account:
+ *   delete:
+ *     tags: [Student - Profile]
+ *     summary: Permanently delete the logged-in student's account
+ *     description: Requires the student's current password for confirmation.
+ *     security:
+ *       - studentAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Account deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       400:
+ *         description: Password confirmation missing
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Password incorrect or token missing
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.delete("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()

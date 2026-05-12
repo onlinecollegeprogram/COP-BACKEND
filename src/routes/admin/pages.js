@@ -12,6 +12,37 @@ router.use(requireAdminAuth)
 
 // ── Pages ─────────────────────────────────────────────────────────────────────
 
+/**
+ * @openapi
+ * /api/admin/pages:
+ *   get:
+ *     tags: [Admin - Pages]
+ *     summary: List all page schemas
+ *     description: Returns every page document (schema definitions), newest first.
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of page documents
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   title: { type: string }
+ *                   slug: { type: string }
+ *                   description: { type: string }
+ *                   sections: { type: array, items: { type: object } }
+ *                   isPublished: { type: boolean }
+ *                   createdAt: { type: string, format: date-time }
+ *                   updatedAt: { type: string, format: date-time }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/pages
 router.get("/", async (req, res) => {
   try {
@@ -23,6 +54,47 @@ router.get("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/pages:
+ *   post:
+ *     tags: [Admin - Pages]
+ *     summary: Create a new page schema
+ *     description: Pages are created with an empty `sections` array and `isPublished=false`. Slug must be unique.
+ *     security:
+ *       - clerkAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title, slug]
+ *             properties:
+ *               title: { type: string }
+ *               slug: { type: string }
+ *               description: { type: string }
+ *     responses:
+ *       201:
+ *         description: Page created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 title: { type: string }
+ *                 slug: { type: string }
+ *                 isPublished: { type: boolean }
+ *       400:
+ *         description: Missing title/slug or slug already exists
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/pages
 router.post("/", async (req, res) => {
   try {
@@ -58,6 +130,37 @@ router.post("/", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/pages/{slug}:
+ *   get:
+ *     tags: [Admin - Pages]
+ *     summary: Get a page schema by slug
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Page document
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 title: { type: string }
+ *                 slug: { type: string }
+ *                 sections: { type: array, items: { type: object } }
+ *                 isPublished: { type: boolean }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Page not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/pages/:slug
 router.get("/:slug", async (req, res) => {
   try {
@@ -70,6 +173,73 @@ router.get("/:slug", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/pages/{slug}:
+ *   put:
+ *     tags: [Admin - Pages]
+ *     summary: Update a page schema
+ *     description: |
+ *       Updates page metadata and its `sections` array. If sections are removed, their associated
+ *       `PageContent` records are deleted. If sections are reordered, the `sectionIndex` of every
+ *       related `PageContent` record is updated to match the new order.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title: { type: string }
+ *               description: { type: string }
+ *               isPublished: { type: boolean }
+ *               sections:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     apiIdentifier: { type: string }
+ *                     sectionIndex: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Updated page
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 title: { type: string }
+ *                 slug: { type: string }
+ *                 sections: { type: array, items: { type: object } }
+ *       400:
+ *         description: Validation failed (returns `fieldErrors` array)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: { type: string }
+ *                 fieldErrors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       path: { type: string }
+ *                       message: { type: string }
+ *                 details: { type: string }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Page not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // PUT /api/admin/pages/:slug
 router.put("/:slug", async (req, res) => {
   try {
@@ -145,6 +315,31 @@ router.put("/:slug", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/pages/{slug}:
+ *   delete:
+ *     tags: [Admin - Pages]
+ *     summary: Delete a page and all of its content
+ *     description: Deletes the page document and every `PageContent` record matched by `pageSlug`.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Page and content deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Page not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/pages/:slug
 router.delete("/:slug", async (req, res) => {
   try {
@@ -174,6 +369,40 @@ router.delete("/:slug", async (req, res) => {
 
 // ── Page Content ──────────────────────────────────────────────────────────────
 
+/**
+ * @openapi
+ * /api/admin/pages/{slug}/content:
+ *   get:
+ *     tags: [Admin - Pages]
+ *     summary: Get all content items for a page
+ *     description: Returns every `PageContent` row for the page, sorted by `sectionIndex` then `itemIndex`. Backfills `sectionIndex` for legacy records.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Array of page content items
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id: { type: string }
+ *                   pageSlug: { type: string }
+ *                   sectionApiId: { type: string }
+ *                   sectionIndex: { type: integer }
+ *                   itemIndex: { type: integer }
+ *                   values: { type: object, description: Section-defined values map }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // GET /api/admin/pages/:slug/content
 router.get("/:slug/content", async (req, res) => {
   try {
@@ -204,6 +433,59 @@ router.get("/:slug/content", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/pages/{slug}/content:
+ *   post:
+ *     tags: [Admin - Pages]
+ *     summary: Create or update a content item for a page section
+ *     description: |
+ *       Upserts a `PageContent` row keyed by (`pageSlug`, `sectionApiId`, `itemIndex`).
+ *       Provide either `sectionApiId` or `sectionIndex` — the other is resolved from the page schema.
+ *       `originalItemIndex` lets the client reorder items within a section.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sectionApiId: { type: string }
+ *               sectionIndex: { type: integer }
+ *               itemIndex: { type: integer, default: 0 }
+ *               originalItemIndex: { type: integer, description: Previous itemIndex when reordering }
+ *               values: { type: object, description: Section-defined values map }
+ *     responses:
+ *       201:
+ *         description: Content created or updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id: { type: string }
+ *                 pageSlug: { type: string }
+ *                 sectionApiId: { type: string }
+ *                 sectionIndex: { type: integer }
+ *                 itemIndex: { type: integer }
+ *                 values: { type: object }
+ *       400:
+ *         description: Missing sectionApiId/sectionIndex
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Page not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // POST /api/admin/pages/:slug/content
 router.post("/:slug/content", async (req, res) => {
   try {
@@ -279,6 +561,46 @@ router.post("/:slug/content", async (req, res) => {
   }
 })
 
+/**
+ * @openapi
+ * /api/admin/pages/{slug}/content:
+ *   delete:
+ *     tags: [Admin - Pages]
+ *     summary: Delete a single content item from a page section
+ *     description: Removes one `PageContent` row identified by (`pageSlug`, `sectionApiId`, `itemIndex`). Provide either `sectionApiId` or `sectionIndex`.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sectionApiId: { type: string }
+ *               sectionIndex: { type: integer }
+ *               itemIndex: { type: integer, default: 0 }
+ *     responses:
+ *       200:
+ *         description: Content item deleted
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/SuccessResponse' }
+ *       400:
+ *         description: sectionApiId/sectionIndex missing
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401: { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       403: { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       404: { description: Page or content not found, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ *       500: { description: Server error, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+ */
 // DELETE /api/admin/pages/:slug/content
 router.delete("/:slug/content", async (req, res) => {
   try {

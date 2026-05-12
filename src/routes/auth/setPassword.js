@@ -17,6 +17,77 @@ function constantTimeCompare(a, b) {
   return result === 0
 }
 
+/**
+ * @openapi
+ * /api/auth/set-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Complete invitation and set admin password
+ *     description: |
+ *       Public endpoint (no auth) used by invited users to finalize their account. Verifies the
+ *       invite token (constant-time compare against a SHA-256 hash), creates or updates the Clerk
+ *       user with the supplied password, upserts the local `User` document, and deletes the
+ *       consumed Invite.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, token, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               token:
+ *                 type: string
+ *                 description: Raw token from the invitation link
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: New password for the admin account
+ *     responses:
+ *       200:
+ *         description: Password set successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string }
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id: { type: string }
+ *                     email: { type: string, format: email }
+ *                     role: { type: string, enum: [admin, viewer] }
+ *       400:
+ *         description: Missing email, token, or password
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       401:
+ *         description: Invalid invitation token
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       404:
+ *         description: Invitation not found for this email
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       410:
+ *         description: Invitation has expired
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ *       500:
+ *         description: Server error (Clerk or DB failure)
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
+ */
 // POST /api/auth/set-password
 router.post("/", async (req, res) => {
   try {
@@ -100,7 +171,7 @@ router.post("/", async (req, res) => {
       },
     })
   } catch (err) {
-    console.error("❌ Set password error:", err.message)
+    console.error(" Set password error:", err.message)
     res.status(500).json({ error: "Failed to set password" })
   }
 })

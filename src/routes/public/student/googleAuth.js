@@ -6,6 +6,51 @@ import { generateStudentToken, sanitizeStudent } from "../../../lib/studentToken
 const router = Router()
 
 // POST /api/public/student/google-auth
+/**
+ * @openapi
+ * /api/public/student/google-auth:
+ *   post:
+ *     tags: [Student - Auth]
+ *     summary: Sign in or sign up a student using a Google OAuth access token
+ *     description: |
+ *       Exchanges a Google OAuth access token for a student session. Existing accounts are
+ *       linked (googleId stored) on first Google sign-in; unknown emails create a new account.
+ *       Returns the sanitized student plus a JWT bearer token.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [accessToken]
+ *             properties:
+ *               accessToken:
+ *                 type: string
+ *                 description: Google OAuth access token (used to call Google's userinfo endpoint).
+ *     responses:
+ *       200:
+ *         description: Authentication successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Student'
+ *                 - type: object
+ *                   properties:
+ *                     token: { type: string, description: JWT bearer token }
+ *       400:
+ *         description: Missing accessToken
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Invalid Google token
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       403:
+ *         description: Account is inactive
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/", async (req, res) => {
     try {
         await connectDB()

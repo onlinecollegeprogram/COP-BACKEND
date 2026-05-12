@@ -6,6 +6,59 @@ import { generateStudentToken, sanitizeStudent } from "../../../lib/studentToken
 const router = Router()
 
 // POST /api/public/student/signup
+/**
+ * @openapi
+ * /api/public/student/signup:
+ *   post:
+ *     tags: [Student - Auth]
+ *     summary: Register a new student
+ *     description: |
+ *       Creates a new Student account using email and/or phone plus a password.
+ *       Returns the sanitized student plus a freshly minted JWT for use as a Bearer token.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password]
+ *             properties:
+ *               name: { type: string }
+ *               firstName: { type: string }
+ *               lastName: { type: string }
+ *               email: { type: string, format: email, description: "Either `email` or `phone` is required." }
+ *               phone: { type: string }
+ *               password: { type: string, minLength: 6 }
+ *               confirmPassword: { type: string }
+ *               courseOfInterest: { type: string }
+ *               dateOfBirth: { type: string, format: date }
+ *               city: { type: string }
+ *               state: { type: string }
+ *               country: { type: string }
+ *               currentEducation: { type: string }
+ *               occupation: { type: string }
+ *               currentCompanyOrUniversity: { type: string }
+ *     responses:
+ *       201:
+ *         description: Student created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Student'
+ *                 - type: object
+ *                   properties:
+ *                     token: { type: string, description: JWT bearer token }
+ *       400:
+ *         description: Missing required fields or weak/mismatched password
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       409:
+ *         description: Account already exists with this email or phone
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/", async (req, res) => {
     try {
         await connectDB()

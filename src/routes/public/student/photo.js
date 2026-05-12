@@ -13,6 +13,33 @@ const isValidPhotoUrl = (v) => {
 }
 
 // GET /api/public/student/photo — get current profile photo URL
+/**
+ * @openapi
+ * /api/public/student/photo:
+ *   get:
+ *     tags: [Student - Profile]
+ *     summary: Get the logged-in student's profile photo URL
+ *     security:
+ *       - studentAuth: []
+ *     responses:
+ *       200:
+ *         description: Current profile photo URL (or null)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 profilePhoto: { type: string, nullable: true }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.get("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()
@@ -27,6 +54,51 @@ router.get("/", requireStudentAuth, async (req, res) => {
 
 // POST /api/public/student/photo — add/set profile photo (when none exists or overwrite)
 // Body: { profilePhoto: "<url | data:image/... >" }
+/**
+ * @openapi
+ * /api/public/student/photo:
+ *   post:
+ *     tags: [Student - Profile]
+ *     summary: Set or overwrite the logged-in student's profile photo
+ *     description: |
+ *       Accepts a URL, root-relative path, or `data:image/...` data URI. If a previous Cloudinary
+ *       asset is on file, it is best-effort deleted.
+ *     security:
+ *       - studentAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [profilePhoto]
+ *             properties:
+ *               profilePhoto: { type: string, description: "Image URL or data URI." }
+ *               profilePhotoPublicId: { type: string, description: "Cloudinary public id (optional)." }
+ *     responses:
+ *       201:
+ *         description: Photo set
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *                 profilePhoto: { type: string }
+ *                 student: { $ref: '#/components/schemas/Student' }
+ *       400:
+ *         description: Invalid profilePhoto value
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.post("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()
@@ -60,6 +132,49 @@ router.post("/", requireStudentAuth, async (req, res) => {
 
 // PUT /api/public/student/photo — update profile photo
 // Body: { profilePhoto }
+/**
+ * @openapi
+ * /api/public/student/photo:
+ *   put:
+ *     tags: [Student - Profile]
+ *     summary: Update the logged-in student's profile photo
+ *     description: Same payload as POST. Best-effort deletes the prior Cloudinary asset if changed.
+ *     security:
+ *       - studentAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [profilePhoto]
+ *             properties:
+ *               profilePhoto: { type: string }
+ *               profilePhotoPublicId: { type: string }
+ *     responses:
+ *       200:
+ *         description: Photo updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *                 profilePhoto: { type: string }
+ *                 student: { $ref: '#/components/schemas/Student' }
+ *       400:
+ *         description: Invalid profilePhoto value
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.put("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()
@@ -92,6 +207,34 @@ router.put("/", requireStudentAuth, async (req, res) => {
 })
 
 // DELETE /api/public/student/photo — remove profile photo
+/**
+ * @openapi
+ * /api/public/student/photo:
+ *   delete:
+ *     tags: [Student - Profile]
+ *     summary: Remove the logged-in student's profile photo
+ *     description: Clears the photo fields and best-effort deletes the Cloudinary asset.
+ *     security:
+ *       - studentAuth: []
+ *     responses:
+ *       200:
+ *         description: Photo removed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       401:
+ *         description: Unauthorized
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Student not found
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Server error
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.delete("/", requireStudentAuth, async (req, res) => {
     try {
         await connectDB()

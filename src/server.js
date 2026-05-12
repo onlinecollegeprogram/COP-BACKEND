@@ -2,7 +2,9 @@ import "dotenv/config" // Ensure environment variables are loaded first
 import express from "express"
 import cors from "cors"
 import morgan from "morgan"
+import swaggerUi from "swagger-ui-express"
 import { connectDB } from "./lib/db.js"
+import { swaggerSpec } from "./lib/swagger.js"
 
 // ── Route imports ─────────────────────────────────────────────────────────────
 // Admin routes (Clerk-protected)
@@ -59,6 +61,13 @@ app.use(express.urlencoded({ extended: true }))
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() })
 })
+
+// ── API documentation (Swagger UI) ────────────────────────────────────────────
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: "COP API Docs",
+  swaggerOptions: { persistAuthorization: true },
+}))
+app.get("/api-docs.json", (req, res) => res.json(swaggerSpec))
 
 // ── Mount routes ──────────────────────────────────────────────────────────────
 
