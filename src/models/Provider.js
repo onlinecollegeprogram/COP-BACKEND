@@ -6,6 +6,7 @@ const providerSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     logo: { type: String },
     coverImage: { type: String },
+    coverDescription: { type: String },
     galleryImages: [{ type: String }],
     galleryDescription: { type: mongoose.Schema.Types.Mixed },
     shortExcerpt: { type: String },
