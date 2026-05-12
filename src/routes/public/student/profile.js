@@ -3,6 +3,7 @@ import Student from "../../../models/Student.js"
 import { connectDB } from "../../../lib/db.js"
 import { requireStudentAuth } from "../../../middleware/studentAuth.js"
 import { sanitizeStudent } from "../../../lib/studentToken.js"
+import { deleteAsset } from "../../../lib/cloudinary.js"
 
 const router = Router()
 
@@ -128,7 +129,20 @@ router.put("/", requireStudentAuth, async (req, res) => {
             "occupation",
             "currentCompanyOrUniversity",
             "profilePhoto",
+            "profilePhotoPublicId",
         ]
+
+        // Cleanup old photo if being replaced or removed
+        if (req.body.profilePhoto !== undefined || req.body.profilePhotoPublicId !== undefined) {
+            const newPublicId = req.body.profilePhotoPublicId
+            if (student.profilePhotoPublicId && (newPublicId === "" || newPublicId === null || (newPublicId && newPublicId !== student.profilePhotoPublicId))) {
+                try {
+                    await deleteAsset(student.profilePhotoPublicId)
+                } catch (e) {
+                    console.warn("Old photo delete failed:", e.message)
+                }
+            }
+        }
 
         for (const key of editable) {
             if (req.body[key] !== undefined) student[key] = req.body[key]
